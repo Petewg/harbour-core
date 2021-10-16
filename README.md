@@ -1,4 +1,11 @@
 # Welcome to Harbour 
+[![License](https://img.shields.io/badge/license-GPLv2%20%2B%20Library%20Exception-blue.svg)](LICENSE.txt "License")
+[![Download](https://img.shields.io/badge/download-nightly_binary_(3.2)-blue.svg)](https://sourceforge.net/projects/harbour-project/files/binaries-windows/nightly/ "Download nigtly build")
+<br>
+<!--
+[![Coverity Status](https://scan.coverity.com/projects/3208/badge.svg)](https://scan.coverity.com/projects/3208)
+[![Build Status](https://travis-ci.org/harbour/core.png)](https://travis-ci.org/harbour/core)
+-->
 
 Harbour is the free software implementation of a multi-platform,
 multi-threading, object-oriented, scriptable programming language,
