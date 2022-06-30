@@ -305,3 +305,26 @@ HB_FUNC( HB_CRCCT )
    else
       hb_errRT_BASE( EG_ARG, 3012, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
 }
+
+HB_FUNC( HB_CRC16_CCITT_FALSE )
+{
+   const char * szString = hb_parc( 1 );
+
+   if( szString )
+   {
+		HB_U8 i;
+		HB_U16 wCrc = 0xffff;
+		HB_SIZE length	= hb_parclen( 1 );
+		
+		while (length--) 
+		{
+			wCrc ^= *(unsigned char *)szString++ << 8;
+			for (i=0; i < 8; i++)
+				wCrc = wCrc & 0x8000 ? (wCrc << 1) ^ 0x1021 : wCrc << 1;
+		}
+			
+      hb_retnint( wCrc & 0xffff );
+   }
+   else
+      hb_errRT_BASE( EG_ARG, 3012, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
+}
