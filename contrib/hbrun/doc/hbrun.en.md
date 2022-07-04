@@ -1,7 +1,7 @@
 Harbour Shell / Script Runner 3\.2\.0dev \(r2013\-04\-03 03:33\)  
 Copyright \(c\) 2007\-2013, Viktor Szakats  
 Copyright \(c\) 2003\-2007, Przemysław Czerpak  
-<http://harbour\-project\.org/>  
+<https://harbour\-project\.org/>  
 
 Syntax:  
   
