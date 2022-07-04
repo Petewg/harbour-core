@@ -1945,7 +1945,7 @@ Supported shells per host platforms:
 
 # Harbour Links
 
-  * [Homepage](https://harbour.github.io/)
+  * [Homepage (version 3.0)](https://harbour.github.io/) [(old version 2.0)](https://harbour-project.org/)
   * [Users' Mailing List](https://groups.google.com/group/harbour-users/) (English language)
   * [Development Mailing List](https://groups.google.com/group/harbour-devel/) (English language)
   * [Source code](https://github.com/harbour/core)
