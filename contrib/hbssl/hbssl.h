@@ -51,6 +51,11 @@
 #include "hbapierr.h"
 #include "hbsocket.h"
 
+/* pacify OpenSSL 3.0 depreciated warnings until we update the code */
+#ifndef OPENSSL_API_COMPAT
+   #define OPENSSL_API_COMPAT 10200
+#endif
+
 #if defined( HB_OS_WIN )
    #if ! defined( HB_OPENSSL_STATIC )
       #define OPENSSL_OPT_WINDLL
@@ -169,8 +174,10 @@
    declarations in OpenSSL prior 0.9.8 */
 #if OPENSSL_VERSION_NUMBER < 0x0090800fL
    #define HB_SSL_CONST
+   #define HB_SSL_CONST_BYTE( x )   ( ( unsigned char * ) ( x ) )
 #else
-   #define HB_SSL_CONST const
+   #define HB_SSL_CONST             const
+   #define HB_SSL_CONST_BYTE( x )   ( ( const unsigned char * ) ( x ) )
 #endif
 
 HB_EXTERN_BEGIN
@@ -209,6 +216,10 @@ extern SSL_SESSION *      hb_SSL_SESSION_par( int iParam );
 extern HB_BOOL            hb_X509_is( int iParam );
 extern X509 *             hb_X509_par( int iParam );
 extern void               hb_X509_ret( X509 * x509, HB_BOOL fRelease );
+
+extern HB_BOOL            hb_RSA_is( int iParam );
+extern RSA *              hb_RSA_par( int iParam );
+extern void               hb_RSA_ret( RSA * rsa );
 
 extern HB_BOOL            hb_EVP_MD_is( int iParam );
 extern const EVP_MD *     hb_EVP_MD_par( int iParam );

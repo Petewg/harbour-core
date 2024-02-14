@@ -2327,6 +2327,7 @@ hb_compExprReduceMod
 hb_compExprReduceMult
 hb_compExprReduceNE
 hb_compExprReduceNegate
+hb_compExprReduceNot
 hb_compExprReduceOr
 hb_compExprReducePlus
 hb_compExprReducePower
@@ -3289,6 +3290,7 @@ hb_socketItemGet
 hb_socketItemPut
 hb_socketListen
 hb_socketLocalAddr
+hb_socketNToHS
 hb_socketOpen
 hb_socketParam
 hb_socketRecv
