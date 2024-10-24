@@ -1,5 +1,5 @@
 ## Harbour binaries (windows platform, build with mingw32)
-* Harbour 3.2.0dev (**r2305191429**)
+* Harbour 3.2.0dev (**r2405130039**)
 
 ```Copyright (c) 1999-2021, https://harbour.github.io/
 
