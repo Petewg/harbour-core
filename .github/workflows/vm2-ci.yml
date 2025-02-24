@@ -27,8 +27,6 @@ jobs:
         exclude:
           - os: {name: omnios}
             compiler: clang
-          # vmactions/solaris-vm works but is very slow to install gcc. Disable it for now
-          - os: {name: solaris}
           - os: {name: solaris}
             compiler: clang
 
@@ -50,14 +48,12 @@ jobs:
               (gcc) echo ${{matrix.compiler}} ;; esac) \
             libslang2 \
             cairo \
+            freeimage \
             libgd \
             mariadb-connector-c \
             postgresql16-client \
             qt5-buildtools qt5-gui
           EOF
-
-          # Dependencies for disabled contribs:
-          #  freeimage \
 
           tee ~/work/install_omnios_deps.sh <<EOF
           #!/usr/xpg4/bin/sh
@@ -75,7 +71,6 @@ jobs:
           /opt/csw/bin/pkgutil -U
           /opt/csw/bin/pkgutil -y -i \
             ccache \
-            gcc5core \
             gmake \
             libcurl_dev \
             libssl_dev
@@ -104,20 +99,20 @@ jobs:
           case ${{matrix.os.name }} in
             *bsd) _cpus="sysctl -n hw.ncpu" ;;
             omnios|solaris) _cpus="psrinfo -p" _add_path="/usr/sfw/bin" ;;
+            *) _cpus="echo 3" ;;
           esac
           HB_USER_CFLAGS=""
           HB_USER_LDFLAGS=""
           case ${{matrix.strictness}} in
             normal) ;;
             strict) case ${{matrix.compiler}} in
-                      (gcc) HB_USER_CFLAGS="$HB_USER_CFLAGS -Werror -Wno-error=deprecated-declarations -Wno-error=array-bounds" ;;
+                      (gcc) HB_USER_CFLAGS="$HB_USER_CFLAGS -Werror" ;;
                       (*)   HB_USER_CFLAGS="$HB_USER_CFLAGS -Werror" ;;
                     esac ;;
           esac
           tee ./.bashrc <<EOENV
-          # These contribs do not build on any platform
-          export HB_BUILD_CONTRIBS="no hbfimage"  # incompatible with freeimage 3.18+
 
+          export HB_BUILD_TEST="${{matrix.strictness}}"
           export HB_BUILD_VERBOSE="yes"
           export HBMK_WITH_SQLITE3="local"
           export HB_USER_CFLAGS="$HB_USER_CFLAGS"
@@ -188,6 +183,7 @@ jobs:
         if: matrix.os.name == 'solaris'
         uses: vmactions/solaris-vm@v1
         with:
+          release: "11.4-gcc"
           usesh: true
           mem: 4096
           prepare: |

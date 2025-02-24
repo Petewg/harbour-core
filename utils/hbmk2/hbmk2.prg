@@ -135,7 +135,7 @@
      5. If HB_COMPILER is not set,
         use the highest one on the priority list.
      NOTES: - Priority list: HB_CCPATH, PATH, embedded.
-            - Priority list: mingw, msvc, bcc, watcom, pocc, xcc
+            - Priority list: mingw, clang, msvc, bcc, watcom, pocc, xcc
             - Compilers of native CPU target have higher priority. (extra)
               On x86_64 Windows: msvc64, msvc, msvcia64, mingw64, mingw, ...
               On x86 Windows: msvc, msvc64, msvcia64, mingw, mingw64, ...
@@ -273,7 +273,7 @@ EXTERNAL hbmk_KEYW
 #define _HBMK_SPECDIR_CONTRIB   "contrib"
 #define _HBMK_SPECDIR_ADDONS    "addons"
 
-#define _HBMK_SIGN_TIMEURL      "http://timestamp.verisign.com/scripts/timstamp.dll"
+#define _HBMK_SIGN_TIMEURL      "http://timestamp.comodoca.com/authenticode"
 
 #define _HBMK_HBEXTREQ          "__HBEXTREQ__"
 #define _HBMK_WITH_TPL          "HBMK_WITH_%1$s"
@@ -2150,11 +2150,11 @@ STATIC FUNCTION __hbmk( aArgs, nArgTarget, nLevel, /* @ */ lPause, /* @ */ lExit
                            DO CASE
                            CASE FindInPath( "os2.h", GetEnv( "INCLUDE" ) ) != NIL
                               hbmk[ _HBMK_cPLAT ] := "os2"
-                           CASE FindInPath( "dirent.h", GetEnv( "INCLUDE" ) ) != NIL
-                              hbmk[ _HBMK_cPLAT ] := "linux"
                            CASE FindInPath( "windows.h", GetEnv( "INCLUDE" ) ) != NIL
                               hbmk[ _HBMK_cPLAT ] := "win"
-                           OTHERWISE
+                           CASE At( Lower( PathSepToForward( GetEnv( "WATCOM" ) ) ) + "/lh", Lower( PathSepToForward( GetEnv( "INCLUDE" ) ) ) ) > 0
+                              hbmk[ _HBMK_cPLAT ] := "linux"
+                           CASE hbmk[ _HBMK_cPLAT ] == Lower( hb_Version( HB_VERSION_PLATFORM ) )
                               hbmk[ _HBMK_cPLAT ] := "dos"
                            ENDCASE
                         ENDIF
@@ -4458,7 +4458,7 @@ STATIC FUNCTION __hbmk( aArgs, nArgTarget, nLevel, /* @ */ lPause, /* @ */ lExit
          ENDIF
          cImpLibExt := cLibLibExt
          IF hbmk[ _HBMK_cCOMP ] == "clang"
-            cBin_Lib := "llvm-ar.exe"
+            cBin_Lib := hbmk[ _HBMK_cCCPREFIX ] + "llvm-ar" + hbmk[ _HBMK_cCCEXT ]
          ELSEIF hbmk[ _HBMK_cCOMP ] == "tcc"
             cBin_Lib := "tiny_libmaker.exe"
          ELSE
@@ -9120,7 +9120,9 @@ STATIC FUNCTION dep_evaluate( hbmk )
             IF hbmk[ _HBMK_lInfo ]
                _hbmk_OutStd( hbmk, hb_StrFormat( I_( "Dependency '%1$s' forcibly disabled" ), dep[ _HBMKDEP_cName ] ) )
             ENDIF
-            lAnyForcedOut := .T.
+            IF ! dep[ _HBMKDEP_lOptional ]
+               lAnyForcedOut := .T.
+            ENDIF
             LOOP
          ELSE
             IF hbmk[ _HBMK_lDEBUGDEPD ]
@@ -9854,6 +9856,7 @@ STATIC FUNCTION PlugIn_make_ctx( hbmk, cState, hVars )
       "cSTATE"        => cState                     , ;
       "params"        => hbmk[ _HBMK_aPLUGINPars ]  , ;
       "vars"          => hVars                      , ;
+      "dept"          => hbmk[ _HBMK_hDEPTMACRO ]   , ;
       "cPLAT"         => hbmk[ _HBMK_cPLAT ]        , ;
       "cCOMP"         => hbmk[ _HBMK_cCOMP ]        , ;
       "nCOMPVer"      => hbmk[ _HBMK_nCOMPVer ]     , ;

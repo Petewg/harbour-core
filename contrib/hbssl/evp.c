@@ -73,15 +73,17 @@ HB_FUNC( EVP_CLEANUP )
 
 HB_FUNC( ERR_LOAD_EVP_STRINGS )
 {
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
    ERR_load_EVP_strings();
+#endif
 }
 
 HB_FUNC( EVP_PKEY_FREE )
 {
-   EVP_PKEY * key = ( EVP_PKEY * ) hb_parptr( 1 );
+   PHB_ITEM pKey = hb_param( 1, HB_IT_POINTER );
 
-   if( key )
-      EVP_PKEY_free( key );
+   if( pKey )
+      hb_EVP_PKEY_free( pKey );
    else
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
 }
@@ -96,6 +98,9 @@ HB_FUNC( EVP_BYTESTOKEY )
       unsigned char key[ EVP_MAX_KEY_LENGTH ];
       unsigned char iv[ EVP_MAX_IV_LENGTH ];
 
+      memset( key, 0, sizeof( key ) );
+      memset( iv, 0, sizeof( iv ) );
+
       hb_retni( EVP_BytesToKey( cipher,
                                 ( HB_SSL_CONST EVP_MD * ) md,
                                 ( HB_SSL_CONST unsigned char * ) hb_parc( 3 ) /* salt */,
@@ -105,8 +110,8 @@ HB_FUNC( EVP_BYTESTOKEY )
                                 key,
                                 iv ) );
 
-      hb_storc( ( char * ) key, 6 );
-      hb_storc( ( char * ) iv, 7 );
+      hb_storclen( ( char * ) key, EVP_CIPHER_key_length( cipher ), 6 );
+      hb_storclen( ( char * ) iv, EVP_CIPHER_iv_length( cipher ), 7 );
    }
    else
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );

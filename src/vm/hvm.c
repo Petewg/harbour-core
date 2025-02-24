@@ -3165,17 +3165,17 @@ static void hb_vmNegate( void )
 #if -HB_VMINT_MAX > HB_VMINT_MIN
       if( pItem->item.asInteger.value < -HB_VMINT_MAX )
       {
-#if HB_VMLONG_MAX > HB_VMINT_MAX
-         HB_MAXINT nValue = ( HB_MAXINT ) pItem->item.asInteger.value;
-         pItem->type = HB_IT_LONG;
-         pItem->item.asLong.value = -nValue;
-         pItem->item.asLong.length = HB_LONG_EXPLENGTH( -nValue );
-#else
+#if HB_VMLONG_MAX == HB_VMINT_MAX
          double dValue = ( double ) pItem->item.asInteger.value;
          pItem->type = HB_IT_DOUBLE;
          pItem->item.asDouble.value = -dValue;
          pItem->item.asDouble.length = HB_DBL_LENGTH( -dValue );
          pItem->item.asDouble.decimal = 0;
+#else
+         HB_MAXINT nValue = ( HB_MAXINT ) pItem->item.asInteger.value;
+         pItem->type = HB_IT_LONG;
+         pItem->item.asLong.value = -nValue;
+         pItem->item.asLong.length = HB_LONG_EXPLENGTH( -nValue );
 #endif
       }
       else
@@ -6776,9 +6776,9 @@ void hb_vmPushNumber( double dNumber, int iDec )
       hb_vmPushDouble( dNumber, hb_stackSetStruct()->HB_SET_DECIMALS );
 }
 
-static int hb_vmCalcIntWidth( HB_MAXINT nNumber )
+static HB_USHORT hb_vmCalcIntWidth( HB_MAXINT nNumber )
 {
-   int iWidth;
+   HB_USHORT iWidth;
 
    if( nNumber <= -1000000000L )
    {
@@ -6818,7 +6818,7 @@ static void hb_vmPushIntegerConst( int iNumber )
 
    pItem->type = HB_IT_INTEGER;
    pItem->item.asInteger.value = iNumber;
-   pItem->item.asInteger.length = ( HB_USHORT ) hb_vmCalcIntWidth( iNumber );
+   pItem->item.asInteger.length = hb_vmCalcIntWidth( iNumber );
 }
 #else
 static void hb_vmPushLongConst( long lNumber )
@@ -6830,7 +6830,7 @@ static void hb_vmPushLongConst( long lNumber )
 
    pItem->type = HB_IT_LONG;
    pItem->item.asLong.value = ( HB_MAXINT ) lNumber;
-   pItem->item.asLong.length = ( HB_USHORT ) hb_vmCalcIntWidth( lNumber );
+   pItem->item.asLong.length = hb_vmCalcIntWidth( lNumber );
 }
 #endif
 
@@ -6879,7 +6879,7 @@ static void hb_vmPushLongLongConst( HB_LONGLONG llNumber )
 
    pItem->type = HB_IT_LONG;
    pItem->item.asLong.value = ( HB_MAXINT ) llNumber;
-   pItem->item.asLong.length = ( HB_USHORT ) hb_vmCalcIntWidth( llNumber );
+   pItem->item.asLong.length = hb_vmCalcIntWidth( llNumber );
 }
 #endif
 
@@ -7553,8 +7553,7 @@ PHB_SYMB hb_vmGetRealFuncSym( PHB_SYMB pSym )
    if( pSym && ! ( pSym->scope.value & HB_FS_LOCAL ) )
    {
       pSym = pSym->pDynSym &&
-         ( ( pSym->pDynSym->pSymbol->scope.value & HB_FS_LOCAL ) ||
-             pSym->pDynSym->pSymbol->value.pFunPtr == pSym->value.pFunPtr ) ?
+           ( pSym->pDynSym->pSymbol->scope.value & HB_FS_LOCAL ) ?
              pSym->pDynSym->pSymbol : NULL;
    }
 

@@ -6,18 +6,18 @@ on:
 
 jobs:
   vm1-ci:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
         os:
           - name: freebsd
-            version: "13.2"
+            version: "14.2"
           - name: netbsd
-            version: "9.3"
+            version: "10.0"
           - name: openbsd
-            version: "7.4"
+            version: "7.6"
         compiler:
           - clang
           - gcc
@@ -30,7 +30,7 @@ jobs:
           - os: {name: openbsd}
             compiler: gcc
           # cross-platform-actions/actions@v0.21.1 works for FreeBSD but hangs often
-          - os: {name: freebsd}
+          #- os: {name: freebsd}
 
     steps:
 
@@ -50,14 +50,12 @@ jobs:
               (gcc) echo ${{matrix.compiler}} ;; esac) \
             libslang2 \
             cairo \
+            freeimage \
             libgd \
             mariadb-connector-c \
             postgresql16-client \
             qt5-buildtools qt5-gui
           EOF
-
-          # Dependencies for disabled contribs:
-          #  freeimage \
 
           tee ~/work/install_netbsd_deps.sh <<EOF
           #!/bin/sh
@@ -78,7 +76,7 @@ jobs:
           chmod a+x ~/work/install_*_deps.sh
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.client_payload.branch }}
 
@@ -95,20 +93,18 @@ jobs:
         run: |
           set -ex
           case ${{matrix.os.name }} in
-            *bsd) _cpus="sysctl -n hw.ncpu" ;;
+            *bsd) _cpus="/sbin/sysctl -n hw.ncpu" ;;
+            *) _cpus="echo 3" ;;
           esac
           HB_USER_CFLAGS=""
           HB_USER_LDFLAGS=""
           case ${{matrix.strictness}} in
             normal) ;;
-            strict) case ${{matrix.compiler}} in
-                      (gcc) HB_USER_CFLAGS="$HB_USER_CFLAGS -Werror -Wno-error=deprecated-declarations -Wno-error=array-bounds" ;;
-                      (*)   HB_USER_CFLAGS="$HB_USER_CFLAGS -Werror" ;;
-                    esac ;;
+            strict) HB_USER_CFLAGS="$HB_USER_CFLAGS -Werror" ;;
           esac
           tee ./.bashrc <<EOENV
           # These contribs do not build on any platform
-          export HB_BUILD_CONTRIBS="no hbfimage"  # incompatible with freeimage 3.18+
+          export HB_BUILD_TEST="${{matrix.strictness}}"
 
           export HB_BUILD_VERBOSE="yes"
           export HBMK_WITH_SQLITE3="local"
@@ -117,6 +113,7 @@ jobs:
           export HB_CCACHE=ccache
 
           export N_CPUS="\$($_cpus)"
+          [ -n "$N_CPUS" ] || export N_CPUS=3
           EOENV
 
       - name: Generate build script
@@ -132,6 +129,7 @@ jobs:
           echo ::group::Build Harbour
           set -ex
           . ./.bashrc
+          ${{matrix.compiler}} --version
           gmake -j$N_CPUS \
             HB_BUILD_CONTRIBS=no \
             HB_COMPILER=${{matrix.compiler}}
@@ -150,7 +148,7 @@ jobs:
 
       - name: Build Harbour and contribs
         timeout-minutes: 30
-        uses: cross-platform-actions/action@v0.21.1
+        uses: cross-platform-actions/action@v0.26.0
         with:
           operating_system: ${{ matrix.os.name }}
           architecture: x86_64

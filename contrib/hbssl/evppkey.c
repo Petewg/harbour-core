@@ -84,6 +84,24 @@ EVP_PKEY * hb_EVP_PKEY_par( int iParam )
    return ph ? ( EVP_PKEY * ) *ph : NULL;
 }
 
+EVP_PKEY * hb_EVP_PKEY_get( PHB_ITEM pItem )
+{
+   void ** ph = ( void ** ) hb_itemGetPtrGC( pItem, &s_gcEVP_PKEY_funcs );
+
+   return ph ? ( EVP_PKEY * ) *ph : NULL;
+}
+
+void hb_EVP_PKEY_free( PHB_ITEM pItem )
+{
+   void ** ph = ( void ** ) hb_itemGetPtrGC( pItem, &s_gcEVP_PKEY_funcs );
+
+   if( ph && *ph )
+   {
+      EVP_PKEY_free( ( EVP_PKEY * ) *ph );
+      *ph = NULL;
+   }
+}
+
 void hb_EVP_PKEY_ret( EVP_PKEY * pkey )
 {
    void ** ph = ( void ** ) hb_gcAllocate( sizeof( EVP_PKEY * ), &s_gcEVP_PKEY_funcs );
@@ -209,13 +227,24 @@ HB_FUNC( EVP_PKEY_ASSIGN )
 HB_FUNC( EVP_PKEY_ASSIGN_RSA )
 {
 #ifndef OPENSSL_NO_RSA
-   if( hb_EVP_PKEY_is( 1 ) && HB_ISPOINTER( 2 ) )
+   if( hb_EVP_PKEY_is( 1 ) && hb_RSA_is( 2 ) )
    {
       EVP_PKEY * pkey = hb_EVP_PKEY_par( 1 );
-      RSA *      key  = ( RSA * ) hb_parptr( 2 );
+      RSA *      key  = hb_RSA_par( 2 );
+      int        res  = 0;
 
       if( pkey && key )
-         hb_retni( EVP_PKEY_assign_RSA( pkey, key ) );
+      {
+         res = EVP_PKEY_assign_RSA( pkey, key );
+
+         if( res != 0 )
+#if OPENSSL_VERSION_NUMBER >= 0x0090700fL
+            RSA_up_ref( key );
+#else
+            hb_RSA_par_remove( 2 );
+#endif
+      }
+      hb_retni( res );
    }
    else
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );

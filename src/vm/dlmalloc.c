@@ -1459,7 +1459,7 @@ DLMALLOC_EXPORT int mspace_mallopt(int, int);
 
 #ifdef _MSC_VER
 #pragma warning( disable : 4146 ) /* no "unsigned" warnings */
-#endif /* _MSC_VER */
+#endif
 #if !NO_MALLOC_STATS
 #include <stdio.h>       /* for printing in malloc_stats */
 #endif /* NO_MALLOC_STATS */

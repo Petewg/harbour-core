@@ -273,6 +273,7 @@
 #define HB_CURLOPT_UL_FHANDLE_SETUP           1011
 #define HB_CURLOPT_DL_FHANDLE_SETUP           1012
 #define HB_CURLOPT_DEBUGBLOCK                 1013
+#define HB_CURLOPT_ER_BUFF_SETUP              1014
 /* Compatibility ones. Please don't use these. */
 #define HB_CURLOPT_SETUPLOADFILE              HB_CURLOPT_UL_FILE_SETUP
 #define HB_CURLOPT_CLOSEUPLOADFILE            HB_CURLOPT_UL_FILE_CLOSE
@@ -295,6 +296,11 @@
 
 /* HB_CURLOPT_SSL_OPTIONS values */
 #define HB_CURLSSLOPT_ALLOW_BEAST             hb_bitShift( 1, 0 )
+#define HB_CURLSSLOPT_NO_REVOKE               hb_bitShift( 1, 1 )
+#define HB_CURLSSLOPT_NO_PARTIALCHAIN         hb_bitShift( 1, 2 )
+#define HB_CURLSSLOPT_REVOKE_BEST_EFFORT      hb_bitShift( 1, 3 )
+#define HB_CURLSSLOPT_NATIVE_CA               hb_bitShift( 1, 4 )
+#define HB_CURLSSLOPT_AUTO_CLIENT_CERT        hb_bitShift( 1, 5 )
 
 /* HB_CURLOPT_HTTPAUTH option */
 #define HB_CURLAUTH_NONE                      0                    /* nothing */
@@ -577,5 +583,34 @@
 #define HB_CURLE_RTSP_SESSION_ERROR           86 /* mismatch of RTSP Session Identifiers */
 #define HB_CURLE_FTP_BAD_FILE_LIST            87 /* unable to parse FTP file list */
 #define HB_CURLE_CHUNK_FAILED                 88 /* chunk callback reported error */
+
+/* multi interface result codes. */
+#define HB_CURLM_ERROR                        -9 /* request not passed to libcurl */
+#define HB_CURLM_CALL_MULTI_PERFORM           -1 /* please call curl_multi_perform() or curl_multi_socket*() soon */
+#define HB_CURLM_OK                           0
+#define HB_CURLM_BAD_HANDLE                   1  /* the passed-in handle is not a valid CURLM handle */
+#define HB_CURLM_BAD_EASY_HANDLE              2  /* an easy handle was not good/valid */
+#define HB_CURLM_OUT_OF_MEMORY                3  /* if you ever get this, you're in deep sh*t */
+#define HB_CURLM_INTERNAL_ERROR               4  /* this is a libcurl bug */
+#define HB_CURLM_BAD_SOCKET                   5  /* the passed in socket argument did not match */
+#define HB_CURLM_UNKNOWN_OPTION               6  /* curl_multi_setopt() with unsupported option */
+#define HB_CURLM_ADDED_ALREADY                7  /* an easy handle already added to a multi handle was attempted to get added - again */
+#define HB_CURLM_RECURSIVE_API_CALL           8  /* an api function was called from inside a callback */
+#define HB_CURLM_WAKEUP_FAILURE               9  /* wakeup is unavailable or failed */
+#define HB_CURLM_BAD_FUNCTION_ARGUMENT        10 /* function called with a bad parameter */
+#define HB_CURLM_ABORTED_BY_CALLBACK          11
+#define HB_CURLM_UNRECOVERABLE_POLL           12
+
+/* curl_multi_info_read() result codes. */
+#define HB_CURLMSG_NONE                       0  /* first, not used */
+#define HB_CURLMSG_DONE                       1  /* This easy handle has completed. 'result' contains the CURLcode of the transfer */
+
+#define HB_CURLMSG_RESP_LEN                   1  /* queue len */
+#define HB_CURLMSG_RESP_RESPONSE_CODE         2  /* curl_easy_getinfo( msg->easy_handle, CURLINFO_RESPONSE_CODE ) */
+#define HB_CURLMSG_RESP_MSG                   3  /* CURLMSG  */
+#define HB_CURLMSG_RESP_RESULT                4  /* CURLcode */
+#define HB_CURLMSG_RESP_HANDLE                5 /* handle to original curl_easy_init */
+#define HB_CURLMSG_RESP_HPOS                  6 /* position in handle <array> passed to curl_multi_info_read(, <array> ) */
+#define HB_CURLMSG_RESP_LAST                  HB_CURLMSG_RESP_HPOS
 
 #endif /* HBCURL_CH_ */

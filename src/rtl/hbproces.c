@@ -423,9 +423,15 @@ static int hb_fsProcessExec( const char * pszFileName,
             for( i = 3; i < iMaxFD; ++i )
                hb_fsClose( i );
          }
-         /* reset extended process attributes */
+
+#if ! defined( __BIONIC__ )
+         /* reset extended process attributes
+          * except on Android libc, where in practice
+          * this method raises "Bad system call" exception
+          */
          ( void ) setuid( getuid() );
          ( void ) setgid( getgid() );
+#endif
 
          /* execute command */
          execvp( argv[ 0 ], argv );
@@ -846,9 +852,14 @@ HB_FHANDLE hb_fsProcessOpen( const char * pszFileName,
                hb_fsClose( i );
          }
 
-         /* reset extended process attributes */
+#  if ! defined( __BIONIC__ )
+         /* reset extended process attributes
+          * except on Android libc, where in practice
+          * this method raises "Bad system call" exception
+          */
          if( setuid( getuid() ) == -1 ) {}
          if( setgid( getgid() ) == -1 ) {}
+#  endif
 
          /* execute command */
          {
@@ -1719,8 +1730,7 @@ int hb_fsProcessRun( const char * pszFileName,
 }
 
 /* temporary hack for still missing sysconf() and chroot() in Watcom 1.9 */
-#if defined( HB_OS_LINUX ) && defined( __WATCOMC__ ) && \
-    __WATCOMC__ <= 1290
+#if defined( HB_OS_LINUX ) && defined( __WATCOMC__ ) && __WATCOMC__ <= 1290
 _WCRTLINK long sysconf( int __name )
 {
    int iTODO;

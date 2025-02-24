@@ -56,8 +56,9 @@
 #endif
 
 #include "hbssl.h"
-
 #include "hbapiitm.h"
+
+#include <openssl/rsa.h>
 
 static HB_GARBAGE_FUNC( SSL_CTX_release )
 {
@@ -110,20 +111,24 @@ const SSL_METHOD * hb_ssl_method_id_to_ptr( int n )
       case HB_SSL_CTX_NEW_METHOD_TLS_SERVER:    p = TLS_server_method();    break;
       case HB_SSL_CTX_NEW_METHOD_TLS_CLIENT:    p = TLS_client_method();    break;
 #else
+      case HB_SSL_CTX_NEW_METHOD_SSLV23:        p = SSLv23_method();        break;
+      case HB_SSL_CTX_NEW_METHOD_SSLV23_SERVER: p = SSLv23_server_method(); break;
+      case HB_SSL_CTX_NEW_METHOD_SSLV23_CLIENT: p = SSLv23_client_method(); break;
 #if OPENSSL_VERSION_NUMBER < 0x10000000L
       case HB_SSL_CTX_NEW_METHOD_SSLV2:         p = SSLv2_method();         break;
       case HB_SSL_CTX_NEW_METHOD_SSLV2_SERVER:  p = SSLv2_server_method();  break;
       case HB_SSL_CTX_NEW_METHOD_SSLV2_CLIENT:  p = SSLv2_client_method();  break;
 #endif
+#ifndef OPENSSL_NO_SSL3_METHOD
       case HB_SSL_CTX_NEW_METHOD_SSLV3:         p = SSLv3_method();         break;
       case HB_SSL_CTX_NEW_METHOD_SSLV3_SERVER:  p = SSLv3_server_method();  break;
       case HB_SSL_CTX_NEW_METHOD_SSLV3_CLIENT:  p = SSLv3_client_method();  break;
+#endif
+#ifndef OPENSSL_NO_TLS1_METHOD
       case HB_SSL_CTX_NEW_METHOD_TLSV1:         p = TLSv1_method();         break;
       case HB_SSL_CTX_NEW_METHOD_TLSV1_SERVER:  p = TLSv1_server_method();  break;
       case HB_SSL_CTX_NEW_METHOD_TLSV1_CLIENT:  p = TLSv1_client_method();  break;
-      case HB_SSL_CTX_NEW_METHOD_SSLV23:        p = SSLv23_method();        break;
-      case HB_SSL_CTX_NEW_METHOD_SSLV23_SERVER: p = SSLv23_server_method(); break;
-      case HB_SSL_CTX_NEW_METHOD_SSLV23_CLIENT: p = SSLv23_client_method(); break;
+#endif
 #endif
       default: p = SSLv23_method();
    }
@@ -693,8 +698,27 @@ HB_FUNC( SSL_CTX_USE_PRIVATEKEY_FILE )
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
 }
 
+HB_FUNC( SSL_CTX_USE_RSAPRIVATEKEY )
+{
+#ifndef OPENSSL_NO_RSA
+   if( hb_SSL_CTX_is( 1 ) && hb_RSA_is( 2 ) )
+   {
+      SSL_CTX * ctx = hb_SSL_CTX_par( 1 );
+      RSA * rsa = hb_RSA_par( 2 );
+
+      if( ctx && rsa )
+         hb_retni( SSL_CTX_use_RSAPrivateKey( ctx, rsa ) );
+   }
+   else
+      hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
+#else
+   hb_errRT_BASE( EG_NOFUNC, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
+#endif
+}
+
 HB_FUNC( SSL_CTX_USE_RSAPRIVATEKEY_FILE )
 {
+#ifndef OPENSSL_NO_RSA
    if( hb_SSL_CTX_is( 1 ) )
    {
       SSL_CTX * ctx = hb_SSL_CTX_par( 1 );
@@ -704,10 +728,14 @@ HB_FUNC( SSL_CTX_USE_RSAPRIVATEKEY_FILE )
    }
    else
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
+#else
+   hb_errRT_BASE( EG_NOFUNC, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
+#endif
 }
 
 HB_FUNC( SSL_CTX_USE_RSAPRIVATEKEY_ASN1 )
 {
+#ifndef OPENSSL_NO_RSA
    if( hb_SSL_CTX_is( 1 ) )
    {
       SSL_CTX * ctx = hb_SSL_CTX_par( 1 );
@@ -717,6 +745,9 @@ HB_FUNC( SSL_CTX_USE_RSAPRIVATEKEY_ASN1 )
    }
    else
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
+#else
+   hb_errRT_BASE( EG_NOFUNC, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
+#endif
 }
 
 HB_FUNC( SSL_CTX_USE_PRIVATEKEY_ASN1 )
@@ -804,7 +835,6 @@ HB_FUNC( SSL_CTX_SET_DEFAULT_VERIFY_PATHS )
 X509_STORE * SSL_CTX_get_cert_store( const SSL_CTX * );
 void SSL_CTX_set_cert_store( SSL_CTX *, X509_STORE * );
 void SSL_CTX_set_cert_store( SSL_CTX * ctx, X509_STORE * cs );
-int  SSL_CTX_use_RSAPrivateKey( SSL_CTX * ctx, RSA * rsa );
 long SSL_CTX_ctrl( SSL_CTX * ctx, int cmd, long larg, char * parg );
 
 void SSL_CTX_set_app_data( SSL_CTX * ctx, void * arg );
